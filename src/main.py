@@ -1,0 +1,263 @@
+from cmu_112_graphics import *
+from car import *
+from track import *
+
+import math
+
+
+def appStarted(app):
+    app.currentScreen = "home"
+
+    #timer
+    app.timeElapsed = 0
+
+    # oval track
+    trackWidth = 50
+    sectors = createtrack1(app) # oval track
+    # sectors = createtrack2(app) # more complex track
+    app.track = Track(sectors, trackWidth)
+    app.currentSector = sectors[0]
+    
+    # lap counting system
+    app.startFinishLine = app.track.getChecqueredFlag()
+    app.lapsCompleted = 0
+
+    # player car
+    startFinishStraight = app.track.getSectors()[0]
+    (x1, y1, x2, y2) = startFinishStraight.getSectorCoords()
+    carSpeed = 10
+    app.playerCar = PlayerCar(app.track.checqueredFlagX, y1, carSpeed)
+
+    # loads image of the player's car from assets folder
+    # app.carimage = app.loadImage('assets/playercar.png')
+    # app.carimage = app.scaleImage(app.carimage, 1/12)
+
+    # Loads playercarstrip.png, which stores 24 different orientations of the
+    # same car sprite. Then crops the strip into 24 smaller images, and stores 
+    # it into a list so that each rotation can be accessed with an index
+    # corresponding to a rotation.
+    carspritestrip = app.loadImage('assets/playercarstrip.png')
+    app.carsprites = []
+    for i in range(24):
+        cropx1, cropy1 = (2500/24)*i, 0
+        cropx2, cropy2 = (2500/24)*(i+1), 104
+        sprite = carspritestrip.crop((cropx1, cropy1, cropx2, cropy2))
+        sprite = app.scaleImage(sprite, 1/2)
+        app.carsprites.append(sprite)
+    
+    # creates a list of orientations that the car can face. The number of orientations
+    # corresponds to the number of individual sprite orientations, so all the
+    # indexes in the carsprites and cardirections list are the same.
+    app.cardirections = []
+    for i in range(24):
+        angle = (i/24)*2*math.pi
+        app.cardirections.append(angle)
+
+    # keeps track of the current rotation that the car is facing
+    app.carOrientation = 0
+
+
+def createtrack1(app):
+    sectors = []
+    sector0 = Sector(0, app.width/5, app.height*4/5, app.width*4/5, app.height*4/5)
+    sector1 = Sector(1, app.width/5, app.height/5, app.width/5, app.height*4/5)
+    sector2 = Sector(2, app.width/5, app.height/5, app.width*4/5, app.height/5)
+    sector3 = Sector(3, app.width*4/5, app.height/5, app.width*4/5, app.height*4/5)
+    sectors.append(sector0)
+    sectors.append(sector1)
+    sectors.append(sector2)
+    sectors.append(sector3)
+    return sectors
+
+def createtrack2(app):
+    sectors = []
+    sector0 = Sector(0, app.width/5, app.height*4/5, app.width*3/5, app.height*4/5)
+    sector1 = Sector(1, app.width/5, app.height*1/2, app.width/5, app.height*4/5)
+    sector2 = Sector(2, app.width/5, app.height*1/2, app.width*2/5, app.height*1/2)
+    sector3 = Sector(3, app.width*2/5, app.height/5, app.width*2/5, app.height*1/2)
+    sector4 = Sector(4, app.width*2/5, app.height/5, app.width*4/5, app.height/5)
+    sector5 = Sector(5, app.width*4/5, app.height/5, app.width*4/5, app.height*3/5)
+    sector6 = Sector(6, app.width*3/5, app.height*3/5, app.width*4/5, app.height*3/5)
+    sector7 = Sector(7, app.width*3/5, app.height*3/5, app.width*3/5, app.height*4/5)
+
+    sectors.append(sector0)
+    sectors.append(sector1)
+    sectors.append(sector2)
+    sectors.append(sector3)
+    sectors.append(sector4)
+    sectors.append(sector5)
+    sectors.append(sector6)
+    sectors.append(sector7)
+    return sectors
+
+def createRandomTrack(app):
+    sectors = []
+    pass
+
+def timerFired(app):
+    app.timeElapsed += 0.1 # increments time every 100 milliseconds
+
+    # calls checkTrackLimits, which takes in the car object and will update the
+    # app.currentSector variable, which keeps track of what sector of the track
+    # that the car is currently in.
+    checkTrackLimits(app, app.playerCar)
+
+    # checkLaps(app, app.startFinishLine, app.playerCar)
+
+def keyPressed(app, event):
+    if app.currentScreen == "game":
+        if event.key == "Up" or event.key == "w":
+            carSpeed = app.playerCar.getCarSpeed(app.currentSector)
+            app.playerCar.x -= carSpeed*math.cos(app.cardirections[app.carOrientation])
+            app.playerCar.y -= carSpeed*math.sin(app.cardirections[app.carOrientation])
+        elif event.key == "Down" or event.key == "s":
+            carSpeed = app.playerCar.getCarSpeed(app.currentSector)
+            app.playerCar.x += carSpeed*math.cos(app.cardirections[app.carOrientation])
+            app.playerCar.y += carSpeed*math.sin(app.cardirections[app.carOrientation])
+        elif event.key == "Left" or event.key == "a":
+            app.carOrientation -= 1
+            if abs(app.carOrientation) > len(app.carsprites)-1:
+                app.carOrientation = app.carOrientation % len(app.carsprites)
+        elif event.key == "Right" or event.key == "d":
+            app.carOrientation += 1
+            if app.carOrientation > len(app.carsprites)-1:
+                app.carOrientation = app.carOrientation % len(app.carsprites)
+
+def keyReleased(app, event):
+    pass
+    
+
+def mousePressed(app, event):
+    if app.currentScreen == "home":
+        if ((app.width*2/5 <= event.x <= app.width*3/5) and
+            (app.height*13/20 <= event.y <= app.height*15/20)):
+            app.currentScreen = "options"
+        elif ((app.width*2/5 <= event.x <= app.width*3/5) and
+            (app.height*4/8 <= event.y <= app.height*5/8)):
+            app.currentScreen = "game"
+
+
+def checkLaps(app, startFinishCoords, car):
+    x1, y1, x2, y2 = startFinishCoords
+    carX, carY = car.getCarCoords()
+    if carX == x1 and y1 <= carY <= y2:
+        app.lapsCompleted += 1
+        app.playerCar.x -= 1
+
+
+def checkTrackLimits(app, car):
+    carX, carY = car.getCarCoords()
+    app.currentSector = app.track.getCurrentSector(carX, carY)
+
+
+def drawCar(app, canvas):
+    r = 10
+    (x, y) = app.playerCar.getCarCoords()
+    # canvas.create_oval(x-r, y-r, x+r, y+r, fill='black')
+    # canvas.create_rectangle(x-(2*r), y-r, x+(2*r), y+r, fill='black')
+    # canvas.create_image(x, y, image=ImageTk.PhotoImage(app.carimage))
+    canvas.create_image(x, y, 
+        image=ImageTk.PhotoImage(app.carsprites[app.carOrientation]))
+
+
+def drawtrack(app, canvas, track):
+    trackWidth = track.getWidth()
+
+    # draw each sector of the track
+    for sector in track.getSectors()[::-1]:
+        (x1, y1, x2, y2) = sector.getSectorCoords()
+        if sector.orientation == "horizontal":
+            canvas.create_rectangle(x1-trackWidth, y1-trackWidth,
+                        x2+trackWidth, y2+trackWidth, fill='grey', outline='')
+
+            # outline for each sector
+            # canvas.create_rectangle(x1-trackWidth, y1-trackWidth,
+            #             x2+trackWidth, y2+trackWidth, fill='', outline='black', width = 2)
+        elif sector.orientation == "vertical":
+            canvas.create_rectangle(x1-trackWidth, y1-trackWidth,
+                        x2+trackWidth, y2+trackWidth, fill='grey', outline='')
+
+            # outline for each sector                        
+            # canvas.create_rectangle(x1-trackWidth, y1-trackWidth,
+            #             x2+trackWidth, y2+trackWidth, fill='', outline='black', width = 2)
+
+    # draw checquered flag
+    (x1, y1, x2, y2) = track.getChecqueredFlag()
+    canvas.create_line(x1, y1, x2, y2, fill='white', width='5')
+
+def drawTimingBoard(app, canvas):
+    minutes = app.timeElapsed // 60
+    seconds = app.timeElapsed % 60 
+    canvas.create_text(app.width/3, app.height*19/20, 
+                    text=f"Time Elapsed: {round(minutes)}.{round(seconds, 1)}",
+                    fill = 'black', font = 'Arial 24 bold')
+
+
+def drawGrass(app, canvas):
+    canvas.create_rectangle(0,0, app.width, app.height, fill = 'light green')
+
+def drawCurrentSectorText(app, canvas):
+    if app.currentSector == None:
+        sectorText = "Off track!"
+        # draws text and warning board
+        canvas.create_rectangle(app.width*3/8, app.height*7/15, app.width*5/8, app.height*8/15,
+                                fill='bisque2', outline='black', width='5')
+        canvas.create_text(app.width/2, app.height/2,
+                        text="You are off track!", fill = 'maroon',
+                        font = 'Arial 36 bold')
+    else:
+        sectorText = f"Current sector: {app.currentSector}"
+    
+    # displays text of the current sector
+    canvas.create_text(app.width*2/3, app.height*19/20, 
+                text=str(sectorText), fill='black', font = 'Arial 24 bold')
+
+def drawLapCounter(app, canvas):
+    canvas.create_text(app.width/2, app.height/10, 
+                text=f'Laps completed: {app.lapsCompleted}', fill='black',
+                font='Arial 24 bold')
+
+def drawMenuScreen(app, canvas):
+    # title text
+    canvas.create_text(app.width/2, app.height/3,
+                        text='Formula 112', fill='maroon', font='Arial 46 bold')
+
+    # start button
+    canvas.create_rectangle(app.width*2/5, app.height*10/20, app.width*3/5, app.height*12/20,
+                        fill='dark grey', outline='black', width='4')
+    canvas.create_text(app.width/2, app.height*11/20, 
+                        text='Start', fill='black', font='Arial 24 bold')
+
+    # options button
+    canvas.create_rectangle(app.width*2/5, app.height*13/20, app.width*3/5, app.height*15/20,
+                        fill='dark grey', outline='black', width='4')
+    canvas.create_text(app.width/2, app.height*14/20, 
+                        text='Options', fill='black', font='Arial 24 bold')
+
+def drawOptionsScreen(app, canvas):
+    pass
+
+def redrawAll(app, canvas):
+    if app.currentScreen == "home": # home screen
+        drawMenuScreen(app, canvas)
+    elif app.currentScreen == "options": # menu/options
+        drawOptionsScreen(app, canvas)
+    elif app.currentScreen == "game": # start the game
+        drawGrass(app, canvas)
+        drawTimingBoard(app, canvas)
+        drawLapCounter(app, canvas)
+        drawtrack(app, canvas, app.track)
+        drawCar(app, canvas)
+        drawCurrentSectorText(app, canvas)
+ 
+def playFormula112():
+    appwidth = 1400
+    appheight = 800
+    apptitle = "Formula 112"
+    runApp(width=appwidth,height=appheight, title=apptitle)
+
+def main():
+    playFormula112()
+
+if __name__ == '__main__':
+    main()
