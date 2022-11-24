@@ -57,17 +57,17 @@ class Track(object):
     def getSector(self, sectorNum):
         return self.sectorsList[sectorNum]
 
-    def getCurrentSector(self, carX, carY):
+    def getCurrentSector(self, carX, carY, scrollX, scrollY):
         # returns the sector that the car is currently on, and none if the
         # car is not on any sectors (i.e. the car is off-track)
         for sector in self.sectorsList:
             if sector.orientation == "horizontal":
-                if ((sector.y1-self.width <= carY <= sector.y1+self.width) and
-                        sector.x1-self.width <= carX <= sector.x2+self.width):
+                if ((sector.y1-self.width+scrollY <= carY <= sector.y1+self.width+scrollY) and
+                        sector.x1-self.width+scrollX <= carX <= sector.x2+self.width+scrollX):
                     return sector
             elif sector.orientation == "vertical":
-                if ((sector.x1-self.width <= carX <= sector.x1+self.width) and
-                        sector.y1-self.width <= carY <= sector.y2+self.width):
+                if ((sector.x1-self.width+scrollX <= carX <= sector.x1+self.width+scrollX) and
+                        sector.y1-self.width+scrollY <= carY <= sector.y2+self.width+scrollY):
                     return sector
         return None
 
