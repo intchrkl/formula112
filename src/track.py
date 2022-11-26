@@ -23,22 +23,27 @@ class Track(object):
     # create a unique track. This allows tracks to be 'modular', since sectors
     # can be added and removed. This will hopefully allow for random track
     # generation to be added in later stages.
-    def __init__(self, sectors, width):
+    def __init__(self, sectors, width, app):
         self.sectorsList = sectors # list of sectors
         self.width = width # width of the track
+        self.app = app
+
+        # generates the (x1,y1) and (x2,y2) line segment for the start-finish line,
+        # which is calculated based on the first sector in the track, and will
+        # help with lap counting.
+        self.startFinishStraight = self.sectorsList[0]
+        (x1, y1, x2, y2) = self.startFinishStraight.getSectorCoords()
+        self.checqueredFlagX = (max(x1,x2) - min(x1,x2))/2 + min(x1, x2)
+        self.checqueredFlagY1 = y1 - self.width
+        self.checqueredFlagY2 = y1 + self.width
 
         # returns coords of checquered flag in the form (x1, y1, x2, y2)
         self.startFinishLine = self.createStartFinishLine()
 
+        self.xshift = (app.width/2) - (self.checqueredFlagX)
+        self.yshift = (self.getSector(0).y1) - (app.height/2)
+
     def createStartFinishLine(self):
-        # generates the (x1,y1) and (x2,y2) line segment for the start-finish line,
-        # which is calculated based on the first sector in the track, and will
-        # help with lap counting.
-        startFinishStraight = self.sectorsList[0]
-        (x1, y1, x2, y2) = startFinishStraight.getSectorCoords()
-        self.checqueredFlagX = (max(x1,x2) - min(x1,x2))/2 + min(x1, x2)
-        self.checqueredFlagY1 = y1 - self.width
-        self.checqueredFlagY2 = y1 + self.width
         return (self.checqueredFlagX, self.checqueredFlagY1, 
                 self.checqueredFlagX, self.checqueredFlagY2)
 
@@ -62,13 +67,22 @@ class Track(object):
         # car is not on any sectors (i.e. the car is off-track)
         for sector in self.sectorsList:
             if sector.orientation == "horizontal":
-                if ((sector.y1-self.width+scrollY <= carY <= sector.y1+self.width+scrollY) and
-                        sector.x1-self.width+scrollX <= carX <= sector.x2+self.width+scrollX):
+                xBound1 = sector.x1-self.width-scrollX+self.xshift
+                xBound2 = sector.x2+self.width-scrollX+self.xshift
+                yBound1 = sector.y1-self.width-scrollY-self.yshift
+                yBound2 = sector.y1+self.width-scrollY-self.yshift
+                if ((yBound1 <= carY <= yBound2) and
+                    (xBound1 <= carX <= xBound2)):
                     return sector
             elif sector.orientation == "vertical":
-                if ((sector.x1-self.width+scrollX <= carX <= sector.x1+self.width+scrollX) and
-                        sector.y1-self.width+scrollY <= carY <= sector.y2+self.width+scrollY):
+                xBound1 = sector.x1-self.width-scrollX+self.xshift
+                xBound2 = sector.x1+self.width-scrollX+self.xshift
+                yBound1 = sector.y1-self.width-scrollY-self.yshift
+                yBound2 = sector.y2+self.width-scrollY-self.yshift
+                if ((xBound1 <= carX <= xBound2) and
+                    (yBound1 <= carY <= yBound2)):
                     return sector
+                pass
         return None
 
     

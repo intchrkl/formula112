@@ -10,14 +10,17 @@ def appStarted(app):
 
     app.scrollX = 0
     app.scrollY = 0
+    app.scrollXMargin = 500
+    app.scrollYMargin = 40
+
 
     #timer
     app.timeElapsed = 0
 
     trackWidth = 50
-    # sectors = createtrack1(app) # oval track
-    sectors = createtrack2(app) # more complex track
-    app.track = Track(sectors, trackWidth)
+    sectors = createtrack1(app) # oval track
+    # sectors = createtrack2(app) # more complex track
+    app.track = Track(sectors, trackWidth, app)
     app.currentSector = sectors[0]
     
     # lap counting system
@@ -26,9 +29,13 @@ def appStarted(app):
 
     # player car
     startFinishStraight = app.track.getSectors()[0]
+    xshift = (app.width/2) - (app.track.checqueredFlagX)
+    yshift = app.track.getSector(0).y1 - (app.height/2)
     (x1, y1, x2, y2) = startFinishStraight.getSectorCoords()
-    carSpeed = 5
-    app.playerCar = PlayerCar(app.track.checqueredFlagX, y1, carSpeed)
+    carSpeed = 10
+    carX = app.track.checqueredFlagX + xshift
+    carY = y1 - yshift
+    app.playerCar = PlayerCar(carX, carY, carSpeed)
 
     # loads image of the player's car from assets folder
     # app.carimage = app.loadImage('assets/playercar.png')
@@ -106,18 +113,21 @@ def timerFired(app):
 
     # checkLaps(app, app.startFinishLine, app.playerCar)
 
+
 def keyPressed(app, event):
     if app.currentScreen == "game":
         if event.key == "Up" or event.key == "w":
             carSpeed = app.playerCar.getCarSpeed(app.currentSector)
-            app.scrollX += carSpeed*math.cos(app.cardirections[app.carOrientation])
-            app.scrollY += carSpeed*math.sin(app.cardirections[app.carOrientation])
+            app.scrollX -= carSpeed*math.cos(app.cardirections[app.carOrientation])
+            app.scrollY -= carSpeed*math.sin(app.cardirections[app.carOrientation])
+            # makePlayerVisible(app)
             # app.playerCar.x -= carSpeed*math.cos(app.cardirections[app.carOrientation])
             # app.playerCar.y -= carSpeed*math.sin(app.cardirections[app.carOrientation])
         elif event.key == "Down" or event.key == "s":
             carSpeed = app.playerCar.getCarSpeed(app.currentSector)
-            app.scrollX -= carSpeed*math.cos(app.cardirections[app.carOrientation])
-            app.scrollY -= carSpeed*math.sin(app.cardirections[app.carOrientation])
+            app.scrollX += carSpeed*math.cos(app.cardirections[app.carOrientation])
+            app.scrollY += carSpeed*math.sin(app.cardirections[app.carOrientation])
+            # makePlayerVisible(app)
             # app.playerCar.x += carSpeed*math.cos(app.cardirections[app.carOrientation])
             # app.playerCar.y += carSpeed*math.sin(app.cardirections[app.carOrientation])
         elif event.key == "Left" or event.key == "a":
@@ -132,7 +142,6 @@ def keyPressed(app, event):
 def keyReleased(app, event):
     pass
     
-
 def mousePressed(app, event):
     if app.currentScreen == "home":
         if ((app.width*2/5 <= event.x <= app.width*3/5) and
@@ -168,20 +177,23 @@ def drawCar(app, canvas):
 
 def drawtrack(app, canvas, track):
     trackWidth = track.getWidth()
-
+    xshift = (app.width/2) - (track.checqueredFlagX)
+    yshift = (track.getSector(0).y1) - (app.height/2)
     # draw each sector of the track
     for sector in track.getSectors()[::-1]:
+        
         (x1, y1, x2, y2) = sector.getSectorCoords()
         if sector.orientation == "horizontal":
-            canvas.create_rectangle(x1-trackWidth+app.scrollX, y1-trackWidth+app.scrollY,
-                        x2+trackWidth+app.scrollX, y2+trackWidth+app.scrollY, fill='grey', outline='')
+            canvas.create_rectangle(x1-trackWidth-app.scrollX+xshift, y1-trackWidth-app.scrollY-yshift,
+                        x2+trackWidth-app.scrollX+xshift, y2+trackWidth-app.scrollY-yshift, fill='grey', outline='')
 
             # outline for each sector
             # canvas.create_rectangle(x1-trackWidth, y1-trackWidth,
             #             x2+trackWidth, y2+trackWidth, fill='', outline='black', width = 2)
         elif sector.orientation == "vertical":
-            canvas.create_rectangle(x1-trackWidth+app.scrollX, y1-trackWidth+app.scrollY,
-                        x2+trackWidth+app.scrollX, y2+trackWidth+app.scrollY, fill='grey', outline='')
+            
+            canvas.create_rectangle(x1-trackWidth-app.scrollX+xshift, y1-trackWidth-app.scrollY-yshift,
+                        x2+trackWidth-app.scrollX+xshift, y2+trackWidth-app.scrollY-yshift, fill='grey', outline='')
 
             # outline for each sector                        
             # canvas.create_rectangle(x1-trackWidth, y1-trackWidth,
@@ -189,7 +201,7 @@ def drawtrack(app, canvas, track):
 
     # draw checquered flag
     (x1, y1, x2, y2) = track.getChecqueredFlag()
-    canvas.create_line(x1+app.scrollX, y1+app.scrollY, x2+app.scrollX, y2+app.scrollY, fill='white', width='5')
+    canvas.create_line(x1-app.scrollX+xshift, y1-app.scrollY-yshift, x2-app.scrollX+xshift, y2-app.scrollY-yshift, fill='white', width='5')
 
 def drawTimingBoard(app, canvas):
     minutes = app.timeElapsed // 60
@@ -206,9 +218,9 @@ def drawCurrentSectorText(app, canvas):
     if app.currentSector == None:
         sectorText = "Off track!"
         # draws text and warning board
-        canvas.create_rectangle(app.width*3/8, app.height*7/15, app.width*5/8, app.height*8/15,
+        canvas.create_rectangle(app.width*3/8, app.height*11/15, app.width*5/8, app.height*13/15,
                                 fill='bisque2', outline='black', width='5')
-        canvas.create_text(app.width/2, app.height/2,
+        canvas.create_text(app.width/2, app.height*12/15,
                         text="You are off track!", fill = 'maroon',
                         font = 'Arial 36 bold')
     else:
@@ -243,6 +255,33 @@ def drawMenuScreen(app, canvas):
 def drawOptionsScreen(app, canvas):
     pass
 
+def makePlayerVisible(app):
+    carX, carY = app.playerCar.getCarCoords()
+    # scroll to make player visible as needed
+    if (carX < app.scrollX + app.scrollXMargin):
+        app.scrollX = carX - app.scrollXMargin
+    if (carX > app.scrollX + app.width - app.scrollXMargin):
+        app.scrollX = carX - app.width + app.scrollXMargin
+    # if (carY < app.scrollY + app.scrollYMargin):
+    #     app.scrollY = carY - app.scrollYMargin
+    # if (carY > app.scrollY + app.height - app.scrollYMargin):
+    #     app.scrollY = carY - app.height + app.scrollYMargin
+
+def drawTrackLimits(app, canvas):
+    for sector in app.track.sectorsList:
+        if sector.orientation == "horizontal":
+            canvas.create_rectangle(sector.x1-app.track.width-app.scrollX+app.track.xshift,
+                                    sector.y1-app.track.width-app.scrollY-app.track.yshift,
+                                    sector.x2+app.track.width-app.scrollX+app.track.xshift,
+                                    sector.y1+app.track.width-app.scrollY-app.track.yshift,
+                                    outline='red', width=2)
+        elif sector.orientation == "vertical":
+            canvas.create_rectangle(sector.x1-app.track.width-app.scrollX+app.track.xshift,
+                                    sector.y1-app.track.width-app.scrollY-app.track.yshift,
+                                    sector.x1+app.track.width-app.scrollX+app.track.xshift,
+                                    sector.y2-app.track.width-app.scrollY-app.track.yshift,
+                                    outline='blue', width=2)
+
 def redrawAll(app, canvas):
     if app.currentScreen == "home": # home screen
         drawMenuScreen(app, canvas)
@@ -255,6 +294,12 @@ def redrawAll(app, canvas):
         drawLapCounter(app, canvas)
         drawCar(app, canvas)
         drawCurrentSectorText(app, canvas)
+        
+        drawTrackLimits(app, canvas) # temporary
+
+        canvas.create_text(1000, 600, text = f"scrollX: {app.scrollX}", fill='black', font='Arial 14 bold')
+        canvas.create_text(1000, 620, text = f"scrollY: {app.scrollY}", fill='black', font='Arial 14 bold')
+        canvas.create_text(1000, 700, text = f"carX: {app.playerCar.x}", fill='black', font='Arial 14 bold')
  
 def playFormula112():
     appwidth = 1400
