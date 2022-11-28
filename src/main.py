@@ -10,32 +10,28 @@ def appStarted(app):
 
     app.scrollX = 0
     app.scrollY = 0
-    app.scrollXMargin = 500
-    app.scrollYMargin = 40
 
 
     #timer
     app.timeElapsed = 0
+    # app.timerDelay = 1
 
-    trackWidth = 50
+    trackWidth = 60
     sectors = createtrack1(app) # oval track
     # sectors = createtrack2(app) # more complex track
+    # sectors = createtrack3(app)
     app.track = Track(sectors, trackWidth, app)
     app.currentSector = sectors[0]
-    
-    # lap counting system
-    app.startFinishLine = app.track.getChecqueredFlag()
-    app.lapsCompleted = 0
 
     # player car
     startFinishStraight = app.track.getSectors()[0]
     xshift = (app.width/2) - (app.track.checqueredFlagX)
     yshift = app.track.getSector(0).y1 - (app.height/2)
     (x1, y1, x2, y2) = startFinishStraight.getSectorCoords()
-    carSpeed = 10
+    maxspeed = 10
     carX = app.track.checqueredFlagX + xshift
     carY = y1 - yshift
-    app.playerCar = PlayerCar(carX, carY, carSpeed)
+    app.playerCar = PlayerCar(carX, carY, maxspeed)
 
     # loads image of the player's car from assets folder
     # app.carimage = app.loadImage('assets/playercar.png')
@@ -64,7 +60,27 @@ def appStarted(app):
 
     # keeps track of the current rotation that the car is facing
     app.carOrientation = 0
+    
 
+def createtrack3(app):
+    sectors = []
+    sector0 = Sector(0, app.width*3/6, app.height*4/6, app.width*5/6, app.height*4/6)
+    sector1 = Sector(1, app.width*3/6, app.height*2/6, app.width*3/6, app.height*4/6)
+    sector2 = Sector(2, app.width*1/6, app.height*2/6, app.width*3/6, app.height*2/6)
+    sector3 = Sector(3, app.width*1/6, app.height*1/6, app.width*1/6, app.height*2/6)
+    sector4 = Sector(4, app.width*1/6, app.height*1/6, app.width*6/6, app.height*1/6)
+    sector5 = Sector(5, app.width*6/6, app.height*1/6, app.width*6/6, app.height*6/6)
+    sector6 = Sector(6, app.width*5/6, app.height*6/6, app.width*6/6, app.height*6/6)
+    sector7 = Sector(7, app.width*5/6, app.height*4/6, app.width*5/6, app.height*6/6)
+    sectors.append(sector0)
+    sectors.append(sector1)
+    sectors.append(sector2)
+    sectors.append(sector3)
+    sectors.append(sector4)
+    sectors.append(sector5)
+    sectors.append(sector6)
+    sectors.append(sector7)
+    return sectors
 
 def createtrack1(app):
     sectors = []
@@ -99,9 +115,19 @@ def createtrack2(app):
     sectors.append(sector7)
     return sectors
 
-def createRandomTrack(app):
-    sectors = []
-    pass
+def updateSectorsVisited(app, car):
+    carX, carY = car.getCarCoords()
+    currentSector = app.track.getCurrentSector(carX, carY, app.scrollX, app.scrollY)
+    car.sectorsVisited.add(currentSector)
+
+def updateLapCount(app, car):
+    if None in car.sectorsVisited:
+        car.sectorsVisited.remove(None)
+    if (car.onFinishLine(app.track, app.scrollX, app.scrollY) and 
+        len(car.sectorsVisited) == len(app.track.getSectors())):
+        car.lapCount += 1
+        car.sectorsVisited = set()
+        # TODO: lap times system
 
 def timerFired(app):
     app.timeElapsed += 0.1 # increments time every 100 milliseconds
@@ -109,9 +135,9 @@ def timerFired(app):
     # calls checkTrackLimits, which takes in the car object and will update the
     # app.currentSector variable, which keeps track of what sector of the track
     # that the car is currently in.
-    checkTrackLimits(app, app.playerCar, app.scrollX, app.scrollY)
-
-    # checkLaps(app, app.startFinishLine, app.playerCar)
+    checkTrackLimits(app, app.playerCar, app.scrollX, app.scrollY) 
+    updateSectorsVisited(app, app.playerCar)
+    updateLapCount(app, app.playerCar)
 
 
 def keyPressed(app, event):
@@ -152,21 +178,12 @@ def mousePressed(app, event):
             app.currentScreen = "game"
 
 
-def checkLaps(app, startFinishCoords, car):
-    x1, y1, x2, y2 = startFinishCoords
-    carX, carY = car.getCarCoords()
-    if carX == x1 and y1 <= carY <= y2:
-        app.lapsCompleted += 1
-        app.playerCar.x -= 1
-
-
 def checkTrackLimits(app, car, scrollX, scrollY):
     carX, carY = car.getCarCoords()
     app.currentSector = app.track.getCurrentSector(carX, carY, scrollX, scrollY)
 
 
 def drawCar(app, canvas):
-    r = 10
     (x, y) = app.playerCar.getCarCoords()
     # canvas.create_oval(x-r, y-r, x+r, y+r, fill='black')
     # canvas.create_rectangle(x-(2*r), y-r, x+(2*r), y+r, fill='black')
@@ -232,7 +249,7 @@ def drawCurrentSectorText(app, canvas):
 
 def drawLapCounter(app, canvas):
     canvas.create_text(app.width/2, app.height/10, 
-                text=f'Laps completed: {app.lapsCompleted}', fill='black',
+                text=f'Laps completed: {app.playerCar.lapCount}', fill='black',
                 font='Arial 24 bold')
 
 def drawMenuScreen(app, canvas):
