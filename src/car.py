@@ -1,21 +1,24 @@
 class Car(object):
-    def __init__(self, x, y, maxspeed):
+    def __init__(self, x, y, maxvel):
         self.x = x
         self.y = y
-        self.defaultSpeed = maxspeed
-        self.offTrackSpeed = maxspeed*1/3
+        self.vel = 0
+        self.acc = 0.1
+        self.decel = 0.05
+        self.maxvel = maxvel
+        self.offTrackVel = maxvel*1/3
+        self.currentSector = 0
         self.lapCount = 0
         self.sectorsVisited = set()
         self.lapTimes = []
+        self.moving = False
 
     def getCarCoords(self):
         return (self.x, self.y)
 
-    def getCarSpeed(self, currentSector):
-        if currentSector == None:
-            return self.offTrackSpeed
-        else:
-            return self.defaultSpeed
+    def updateCarSpeed(self):
+        if self.currentSector == None:
+            self.vel = self.vel*19/20
     
     def onFinishLine(self, track, scrollX, scrollY):
         x1, y1, x2, y2 = track.getChecqueredFlag()
@@ -27,8 +30,8 @@ class Car(object):
         
 
 class PlayerCar(Car):
-    def __init__(self, appwidth, appheight, maxspeed):
-        super().__init__(appwidth, appheight, maxspeed)
+    def __init__(self, appwidth, appheight, maxvel):
+        super().__init__(appwidth, appheight, maxvel)
 
     
 
