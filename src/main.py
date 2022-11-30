@@ -17,10 +17,17 @@ def appStarted(app):
     app.timerDelay = 10
 
     trackWidth = 100
-    sectors = createtrack1(app) # oval track
-    # sectors = createtrack2(app) # more complex track
-    # sectors = createtrack3(app)
-    app.track = Track(sectors, trackWidth, app)
+    sectorsTrack1 = createtrack1(app) # oval track
+    track1 = Track(sectorsTrack1, trackWidth, app, 0)
+
+    sectorsTrack2 = createtrack2(app) # more complex track
+    track2 = Track(sectorsTrack2, trackWidth, app, 1)
+
+    sectorsTrack3 = createtrack3(app)
+    track3 = Track(sectorsTrack3, trackWidth, app, 2)
+    
+    app.trackslist = [track1, track2, track3]
+    app.track = track1
 
     # player car
     startFinishStraight = app.track.getSectors()[0]
@@ -31,7 +38,7 @@ def appStarted(app):
     carX = app.track.checqueredFlagX + xshift
     carY = y1 - yshift
     app.playerCar = PlayerCar(carX, carY, maxspeed)
-    app.playerCar.currentSector = sectors[0]
+    app.playerCar.currentSector = app.track.sectorsList[0]
 
     # Loads playercarstrip.png, which stores 24 different orientations of the
     # same car sprite. Then crops the strip into 24 smaller images, and stores 
@@ -63,10 +70,6 @@ def appStarted(app):
 
 def createtrack1(app):
     sectors = []
-    # sector0 = Sector(0, app.width/5, app.height*4/5, app.width*4/5, app.height*4/5)
-    # sector1 = Sector(1, app.width/5, app.height/5, app.width/5, app.height*4/5)
-    # sector2 = Sector(2, app.width/5, app.height/5, app.width*4/5, app.height/5)
-    # sector3 = Sector(3, app.width*4/5, app.height/5, app.width*4/5, app.height*4/5)
     sector0 = Sector(0, 0, 0, 2000, 0)
     sector1 = Sector(1, 0, 0, 0, 2000)
     sector2 = Sector(2, 0, 2000, 2000, 2000)
@@ -79,14 +82,14 @@ def createtrack1(app):
 
 def createtrack2(app):
     sectors = []
-    sector0 = Sector(0, app.width/5, app.height*4/5, app.width*3/5, app.height*4/5)
-    sector1 = Sector(1, app.width/5, app.height*1/2, app.width/5, app.height*4/5)
-    sector2 = Sector(2, app.width/5, app.height*1/2, app.width*2/5, app.height*1/2)
-    sector3 = Sector(3, app.width*2/5, app.height/5, app.width*2/5, app.height*1/2)
-    sector4 = Sector(4, app.width*2/5, app.height/5, app.width*4/5, app.height/5)
-    sector5 = Sector(5, app.width*4/5, app.height/5, app.width*4/5, app.height*3/5)
-    sector6 = Sector(6, app.width*3/5, app.height*3/5, app.width*4/5, app.height*3/5)
-    sector7 = Sector(7, app.width*3/5, app.height*3/5, app.width*3/5, app.height*4/5)
+    sector0 = Sector(0, 0, 2000, 1500, 2000)
+    sector1 = Sector(1, 0, 1000, 0, 2000)
+    sector2 = Sector(2, 0, 1000, 1000, 1000)
+    sector3 = Sector(3, 1000, 0, 1000, 1000)
+    sector4 = Sector(4, 1000, 0, 3000, 0)
+    sector5 = Sector(5, 3000, 0, 3000, 1500)
+    sector6 = Sector(6, 1500, 1500, 3000, 1500)
+    sector7 = Sector(7, 1500, 1500, 1500, 2000)
 
     sectors.append(sector0)
     sectors.append(sector1)
@@ -100,14 +103,14 @@ def createtrack2(app):
 
 def createtrack3(app):
     sectors = []
-    sector0 = Sector(0, app.width*3/6, app.height*4/6, app.width*5/6, app.height*4/6)
-    sector1 = Sector(1, app.width*3/6, app.height*2/6, app.width*3/6, app.height*4/6)
-    sector2 = Sector(2, app.width*1/6, app.height*2/6, app.width*3/6, app.height*2/6)
-    sector3 = Sector(3, app.width*1/6, app.height*1/6, app.width*1/6, app.height*2/6)
-    sector4 = Sector(4, app.width*1/6, app.height*1/6, app.width*6/6, app.height*1/6)
-    sector5 = Sector(5, app.width*6/6, app.height*1/6, app.width*6/6, app.height*6/6)
-    sector6 = Sector(6, app.width*5/6, app.height*6/6, app.width*6/6, app.height*6/6)
-    sector7 = Sector(7, app.width*5/6, app.height*4/6, app.width*5/6, app.height*6/6)
+    sector0 = Sector(0, 0, 2000, 2000, 2000)
+    sector1 = Sector(1, 0, 0, 0, 2000)
+    sector2 = Sector(2, 0, 0, 750, 0)
+    sector3 = Sector(3, 750, 0, 750, 1500)
+    sector4 = Sector(4, 750, 1500, 1250, 1500)
+    sector5 = Sector(5, 1250, 750, 1250, 1500)
+    sector6 = Sector(6, 1250, 750, 2000, 750)
+    sector7 = Sector(7, 2000, 750, 2000, 2000) 
     sectors.append(sector0)
     sectors.append(sector1)
     sectors.append(sector2)
@@ -116,12 +119,15 @@ def createtrack3(app):
     sectors.append(sector5)
     sectors.append(sector6)
     sectors.append(sector7)
+
     return sectors
 
 def updateSectorsVisited(app, car):
     carX, carY = car.getCarCoords()
-    currentSector = app.track.getCurrentSector(carX, carY, app.scrollX, app.scrollY)
+    currentSector = app.track.getCurrentSectorNum(carX, carY, app.scrollX, app.scrollY)
     car.sectorsVisited.add(currentSector)
+    
+    print(car.sectorsVisited)
 
 def updateLapTimes(app):
     currentLapTime = app.timeElapsed - sum(app.playerLapTimes)
@@ -130,6 +136,7 @@ def updateLapTimes(app):
 
 
 def updateLapCount(app, car):
+    print(app.track.getSectors())
     if None in car.sectorsVisited:
         car.sectorsVisited.remove(None)
     if (car.onFinishLine(app.track, app.scrollX, app.scrollY) and 
@@ -139,7 +146,8 @@ def updateLapCount(app, car):
         updateLapTimes(app)
 
 def timerFired(app):
-    app.timeElapsed += 0.1 # increments time every 100 milliseconds
+    if app.currentScreen == "game":
+        app.timeElapsed += 0.015 # increments time every 100 milliseconds
 
     # calls checkTrackLimits, which takes in the car object and will update the
     # app.playerCar.currentSector variable, which keeps track of what sector of the track
@@ -172,6 +180,10 @@ def keyPressed(app, event):
                 app.carOrientation += 1
                 if app.carOrientation > len(app.carsprites)-1:
                     app.carOrientation = app.carOrientation % len(app.carsprites)
+        elif event.key == "Escape":
+            app.currentScreen = "home"
+    elif app.currentScreen == "options":
+        pass
 
 def keyReleased(app, event):
     pass
@@ -184,6 +196,22 @@ def mousePressed(app, event):
         elif ((app.width*2/5 <= event.x <= app.width*3/5) and
             (app.height*4/8 <= event.y <= app.height*5/8)):
             app.currentScreen = "game"
+    elif app.currentScreen == "options":
+        x1, y1, x2, y2 = app.width/16, app.height*3/8, app.width*5/16, app.height*5/8
+        if x1 <= event.x <= x2 and y1 <= event.y <= y2:
+            app.track = app.trackslist[0]
+            app.sectorsVisited = set()
+        elif (x2+app.width/16 <= event.x <= x2+app.width/16+(x2-x1) and
+              y1 <= event.y <= y2):
+            app.track = app.trackslist[1]
+            app.sectorsVisited = set()
+        elif (x2+(2*app.width/16)+(x2-x1) <= event.x <= x2+(2*app.width/16)+2*(x2-x1) and
+              y1 <= event.y <= y2):
+            app.track = app.trackslist[2]
+            app.sectorsVisited = set()
+        elif (app.width*6/14 <= event.x <= app.width*8/14 and 
+              app.height*7/10 <= event.y <= app.height*8/10):
+              app.currentScreen = "home"
 
 
 def checkTrackLimits(app, car, scrollX, scrollY):
@@ -282,26 +310,87 @@ def drawMenuScreen(app, canvas):
     canvas.create_text(app.width/2, app.height*14/20, 
                         text='Options', fill='black', font='Arial 24 bold')
 
+def drawMiniMapView(app, canvas, track, x1, y1, x2, y2):
+    if track == app.track:
+        backgroundcolor = 'light green'
+    else:
+        backgroundcolor = 'bisque2'
+    mapwidth = x2 - x1
+    mapheight = y2 - y1
+    canvas.create_rectangle(x1, y1, x2, y2, fill=backgroundcolor, outline='black', width=8)
+    maxhorizontal = 0
+    maxvertical = 0
+    minimaptrackwidth = 25
+    
+    for sector in track.sectorsList:
+        xS1, yS1, xS2, yS2 = sector.getSectorCoords()
+        vertical = yS2 - yS1
+        horizontal = xS2 - xS1
+        if horizontal > maxhorizontal:
+            maxhorizontal = horizontal
+        if vertical > maxvertical:
+            maxvertical = vertical
+
+
+    for sector in track.sectorsList:
+        xS1, yS1, xS2, yS2 = sector.getSectorCoords()
+        scaledX1 = xS1*mapwidth/(maxhorizontal*2)+(mapwidth/6)
+        scaledY1 = yS1*mapheight/(maxvertical*2)+(mapheight/6)
+        scaledX2 = xS2*mapwidth/(maxhorizontal*2)+(mapwidth/6)
+        scaledY2 = yS2*mapheight/(maxvertical*2)+(mapheight/6)
+        canvas.create_line(scaledX1+x1,
+                           scaledY1+y1,
+                           scaledX2+x1,
+                           scaledY2+y1,
+                           fill='grey',
+                           width=minimaptrackwidth)
+
+    canvas.create_text(x1+(mapwidth/2), y1-(mapheight/5),
+                       text=track,
+                       fill='maroon',
+                       font='Arial 20 bold')
+
 def drawOptionsScreen(app, canvas):
-    pass
+    canvas.create_text(app.width/2, app.height/8, text='Choose your track!',
+                       fill='maroon', font='Arial 34 bold')
+    canvas.create_text(app.width/2, app.height*7/8,
+                        text=f'Currently selected: {app.track}',
+                        fill='maroon', font='Arial 34 bold')
+    x1, y1, x2, y2 = app.width/16, app.height*3/8, app.width*5/16, app.height*5/8
+
+    canvas.create_rectangle(app.width*6/14, app.height*7/10, app.width*8/14, app.height*8/10,
+                            fill='dark grey', outline='black', width=5)
+    canvas.create_text(app.width*7/14, app.height*7.5/10,
+                            text='Save', fill='black', font='Arial 20 bold')
+
+    # draws each of the tracks in a small frame for the user to view
+    drawMiniMapView(app, canvas, app.trackslist[0], x1, y1, x2, y2)
+    drawMiniMapView(app, canvas, app.trackslist[1], x2+app.width/16, y1, x2+app.width/16+(x2-x1), y2)
+    drawMiniMapView(app, canvas, app.trackslist[2], x2+(2*app.width/16)+(x2-x1), y1, x2+(2*app.width/16)+2*(x2-x1), y2)
+
+
 
 def drawTrackLines(app, canvas, track):
     xshift = (app.width/2) - (track.checqueredFlagX)
     yshift = (track.getSector(0).y1) - (app.height/2)
+
+    segmentlength = 40 # length of each dotted segment in dotted line
     for sector in track.getSectors()[::-1]:
         (x1, y1, x2, y2) = sector.getSectorCoords()
         if sector.orientation == "horizontal":
-            canvas.create_line(x1-app.scrollX+xshift, 
-                               y1-app.scrollY-yshift, 
-                               x2-app.scrollX+xshift, 
-                               y2-app.scrollY-yshift,
-                               width=3, fill='dark grey')
+            for i in range(x1, x2, segmentlength*3):
+                canvas.create_line(i-app.scrollX+xshift,
+                                   y1-app.scrollY-yshift,
+                                   i+segmentlength-app.scrollX+xshift, 
+                                   y2-app.scrollY-yshift,
+                                   fill='white', width=5)
         elif sector.orientation == "vertical":
-            canvas.create_line(x1-app.scrollX+xshift, 
-                               y1-app.scrollY-yshift, 
-                               x2-app.scrollX+xshift, 
-                               y2-app.scrollY-yshift,
-                               width=3, fill='dark grey')
+            for i in range(y1, y2, segmentlength*3):
+                canvas.create_line(x1-app.scrollX+xshift,
+                                   i-app.scrollY-yshift,
+                                   x2-app.scrollX+xshift, 
+                                   i+segmentlength-app.scrollY-yshift,
+                                   fill='white', width=5)
 
 def drawTrackLimits(app, canvas):
     for sector in app.track.sectorsList:
@@ -365,7 +454,7 @@ def redrawAll(app, canvas):
         drawCurrentSectorText(app, canvas)
         
         
-        drawTrackLimits(app, canvas) # temporary
+        # drawTrackLimits(app, canvas) # temporary
  
 def playFormula112():
     appwidth = 1400

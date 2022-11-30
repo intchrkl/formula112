@@ -23,10 +23,11 @@ class Track(object):
     # create a unique track. This allows tracks to be 'modular', since sectors
     # can be added and removed. This will hopefully allow for random track
     # generation to be added in later stages.
-    def __init__(self, sectors, width, app):
+    def __init__(self, sectors, width, app, tracknumber):
         self.sectorsList = sectors # list of sectors
         self.width = width # width of the track
         self.app = app
+        self.tracknumber = tracknumber
 
         # generates the (x1,y1) and (x2,y2) line segment for the start-finish line,
         # which is calculated based on the first sector in the track, and will
@@ -42,6 +43,9 @@ class Track(object):
 
         self.xshift = (app.width/2) - (self.checqueredFlagX)
         self.yshift = (self.getSector(0).y1) - (app.height/2)
+
+    def __repr__(self):
+        return f"Track {self.tracknumber+1}"
 
     def createStartFinishLine(self):
         return (self.checqueredFlagX, self.checqueredFlagY1, 
@@ -84,6 +88,13 @@ class Track(object):
                     return sector
                 pass
         return None
+
+    def getCurrentSectorNum(self, carX, carY, scrollX, scrollY):
+        sector = self.getCurrentSector(carX, carY, scrollX, scrollY )
+        if sector == None:
+            return None
+        else:
+            return sector.sectorNum
 
     
 
