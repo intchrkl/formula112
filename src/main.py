@@ -43,7 +43,9 @@ def appStarted(app):
     # Loads playercarstrip.png, which stores 24 different orientations of the
     # same car sprite. Then crops the strip into 24 smaller images, and stores 
     # it into a list so that each rotation can be accessed with an index
-    # corresponding to a rotation.
+    # corresponding to a rotation. Based on spritestrip code from: 
+    # https://www.cs.cmu.edu/~112/notes/notes-animations-part4.html#spritesheetsWithCropping
+    # The image for the car and spritestrip itself was original and drawn by me.
     carspritestrip = app.loadImage('assets/playercarstrip.png')
     app.carsprites = []
     for i in range(24):
@@ -127,16 +129,13 @@ def updateSectorsVisited(app, car):
     currentSector = app.track.getCurrentSectorNum(carX, carY, app.scrollX, app.scrollY)
     car.sectorsVisited.add(currentSector)
     
-    print(car.sectorsVisited)
 
 def updateLapTimes(app):
     currentLapTime = app.timeElapsed - sum(app.playerLapTimes)
     app.playerLapTimes.append(currentLapTime)
-    print(currentLapTime)
 
 
 def updateLapCount(app, car):
-    print(app.track.getSectors())
     if None in car.sectorsVisited:
         car.sectorsVisited.remove(None)
     if (car.onFinishLine(app.track, app.scrollX, app.scrollY) and 
@@ -147,7 +146,7 @@ def updateLapCount(app, car):
 
 def timerFired(app):
     if app.currentScreen == "game":
-        app.timeElapsed += 0.015 # increments time every 100 milliseconds
+        app.timeElapsed += 0.015
 
     # calls checkTrackLimits, which takes in the car object and will update the
     # app.playerCar.currentSector variable, which keeps track of what sector of the track
@@ -221,9 +220,6 @@ def checkTrackLimits(app, car, scrollX, scrollY):
 
 def drawCar(app, canvas):
     (x, y) = app.playerCar.getCarCoords()
-    # canvas.create_oval(x-r, y-r, x+r, y+r, fill='black')
-    # canvas.create_rectangle(x-(2*r), y-r, x+(2*r), y+r, fill='black')
-    # canvas.create_image(x, y, image=ImageTk.PhotoImage(app.carimage))
     canvas.create_image(x, y, 
         image=ImageTk.PhotoImage(app.carsprites[app.carOrientation]))
 
@@ -238,28 +234,13 @@ def drawtrack(app, canvas, track):
         (x1, y1, x2, y2) = sector.getSectorCoords()
         canvas.create_rectangle(x1-trackWidth-app.scrollX+xshift, y1-trackWidth-app.scrollY-yshift,
                         x2+trackWidth-app.scrollX+xshift, y2+trackWidth-app.scrollY-yshift, fill='grey', outline='')
-        
-        # if sector.orientation == "horizontal":
-        #     canvas.create_rectangle(x1-trackWidth-app.scrollX+xshift, y1-trackWidth-app.scrollY-yshift,
-        #                 x2+trackWidth-app.scrollX+xshift, y2+trackWidth-app.scrollY-yshift, fill='grey', outline='')
-
-            
-
-        #     # outline for each sector
-        #     # canvas.create_rectangle(x1-trackWidth, y1-trackWidth,
-        #     #             x2+trackWidth, y2+trackWidth, fill='', outline='black', width = 2)
-        # elif sector.orientation == "vertical":
-            
-        #     canvas.create_rectangle(x1-trackWidth-app.scrollX+xshift, y1-trackWidth-app.scrollY-yshift,
-        #                 x2+trackWidth-app.scrollX+xshift, y2+trackWidth-app.scrollY-yshift, fill='grey', outline='')
-
-        #     # outline for each sector                        
-        #     # canvas.create_rectangle(x1-trackWidth, y1-trackWidth,
-        #     #             x2+trackWidth, y2+trackWidth, fill='', outline='black', width = 2)
 
     # draw checquered flag
     (x1, y1, x2, y2) = track.getChecqueredFlag()
-    canvas.create_line(x1-app.scrollX+xshift, y1-app.scrollY-yshift, x2-app.scrollX+xshift, y2-app.scrollY-yshift, fill='white', width='5')
+    canvas.create_line(x1-app.scrollX+xshift, 
+                       y1-app.scrollY-yshift, 
+                       x2-app.scrollX+xshift, 
+                       y2-app.scrollY-yshift, fill='white', width='5')
 
 def drawStopwatch(app, canvas):
     minutes = app.timeElapsed // 60
