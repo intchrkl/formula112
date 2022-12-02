@@ -137,11 +137,18 @@ def updateLapTimes(app):
 
 def updateLapCount(app, car):
     if None in car.sectorsVisited:
+        # removes None from sectorsVisited to ignore when the car goes off-track
         car.sectorsVisited.remove(None)
     if (car.onFinishLine(app.track, app.scrollX, app.scrollY) and 
         len(car.sectorsVisited) == len(app.track.getSectors())):
+        # if the car is on the finish line and all the sectors have been visited,
+        # update the lap count
         car.lapCount += 1
+
+        # resets the sectorsVisited set for a new lap
         car.sectorsVisited = set()
+
+        # saves the lap time to the timing board
         updateLapTimes(app)
 
 def timerFired(app):
@@ -155,12 +162,19 @@ def timerFired(app):
     updateSectorsVisited(app, app.playerCar)
     updateLapCount(app, app.playerCar)
 
+    # if the car is on track, its speed remains unchanged
+    # otherwise, decrease the speed of the car if it is off-track
     app.playerCar.updateCarSpeed()
+
+    # moves the track instead of actually moving the car; achieves sidescrolling effect
     app.scrollX -= app.playerCar.vel*math.cos(app.cardirections[app.carOrientation])
     app.scrollY -= app.playerCar.vel*math.sin(app.cardirections[app.carOrientation])
     if app.playerCar.moving:
+        # if the car is moving, increase the velocity of the car by 
+        # its acceleration value
         app.playerCar.vel = min(app.playerCar.maxvel, app.playerCar.vel+app.playerCar.acc)
     else:
+        # otherwise, decelerate the car by its deceleration value
         app.playerCar.vel = max(0, app.playerCar.vel-app.playerCar.decel)
         
 
@@ -266,7 +280,7 @@ def drawCurrentSectorText(app, canvas):
         sectorText = f"Current sector: {app.playerCar.currentSector}"
     
     # displays text of the current sector
-    canvas.create_text(app.width*2/3, app.height*19/20, 
+    canvas.create_text(app.width/12, app.height*19/20, 
                 text=str(sectorText), fill='black', font = 'Arial 24 bold')
 
 def drawLapCounter(app, canvas):
@@ -419,6 +433,35 @@ def drawTimingBoard(app, canvas):
                            fill='black',
                            anchor='w')
 
+def drawSpeedometer(app, canvas, car):
+    currentVel = car.vel
+    realisticTopSpeed = 354 # km/h
+    realisticVel = currentVel*realisticTopSpeed/car.maxvel
+    if realisticVel < 100:
+        realisticVelStr = f"  {str(round(realisticVel, 1))}"
+
+    else:
+        realisticVelStr = str(round(realisticVel, 1))
+
+    speedometerBarLength = 200
+
+    canvas.create_text(app.width*9.5/15+(speedometerBarLength*5/6), app.height*23.5/25, 
+                text=f"{realisticVelStr} km/h", fill='maroon', 
+                font = 'Arial 24 bold', anchor='w')
+
+    canvas.create_rectangle(app.width*9/15, 
+                            app.height*23/25, 
+                            app.width*9/15+(currentVel/car.maxvel*speedometerBarLength),
+                            app.height*24/25,
+                            fill='maroon', outline='')
+
+    canvas.create_rectangle(app.width*9/15, 
+                            app.height*23/25, 
+                            app.width*9/15+speedometerBarLength,
+                            app.height*24/25,
+                            fill='', outline='black', width=2)
+
+    
 def redrawAll(app, canvas):
     if app.currentScreen == "home": # home screen
         drawMenuScreen(app, canvas)
@@ -433,6 +476,7 @@ def redrawAll(app, canvas):
         drawLapCounter(app, canvas)
         drawCar(app, canvas)
         drawCurrentSectorText(app, canvas)
+        drawSpeedometer(app, canvas, app.playerCar)
         
         
         # drawTrackLimits(app, canvas) # temporary
