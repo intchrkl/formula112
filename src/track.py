@@ -34,27 +34,27 @@ class Track(object):
         # help with lap counting.
         self.startFinishStraight = self.sectorsList[0]
         (x1, y1, x2, y2) = self.startFinishStraight.getSectorCoords()
-        self.checqueredFlagX = (max(x1,x2) - min(x1,x2))/2 + min(x1, x2)
-        self.checqueredFlagY1 = y1 - self.width
-        self.checqueredFlagY2 = y1 + self.width
+        self.checkeredFlagX = (max(x1,x2) - min(x1,x2))/2 + min(x1, x2)
+        self.checkeredFlagY1 = y1 - self.width
+        self.checkeredFlagY2 = y1 + self.width
 
-        # returns coords of checquered flag in the form (x1, y1, x2, y2)
+        # returns coords of checkered flag in the form (x1, y1, x2, y2)
         self.startFinishLine = self.createStartFinishLine()
 
-        self.xshift = (app.width/2) - (self.checqueredFlagX)
+        self.xshift = (app.width/2) - (self.checkeredFlagX)
         self.yshift = (self.getSector(0).y1) - (app.height/2)
 
     def __repr__(self):
         return f"Track {self.tracknumber+1}"
 
     def createStartFinishLine(self):
-        return (self.checqueredFlagX, self.checqueredFlagY1, 
-                self.checqueredFlagX, self.checqueredFlagY2)
+        return (self.checkeredFlagX, self.checkeredFlagY1, 
+                self.checkeredFlagX, self.checkeredFlagY2)
 
     def getSectors(self):
         return self.sectorsList
 
-    def getChecqueredFlag(self):
+    def getCheckeredFlag(self):
         return self.startFinishLine
 
     def getNumSectors(self):

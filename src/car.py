@@ -21,7 +21,7 @@ class Car(object):
             self.vel = self.vel*19/20
     
     def onFinishLine(self, track, scrollX, scrollY):
-        x1, y1, x2, y2 = track.getChecqueredFlag()
+        x1, y1, x2, y2 = track.getCheckeredFlag()
         if ((x1-scrollX+track.xshift-(track.width/2) <= self.x <= x2-scrollX+track.xshift+(track.width/2)) and
             (y1-scrollY-track.yshift <= self.y <= y2-scrollY-track.yshift)):
             return True

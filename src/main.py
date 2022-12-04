@@ -31,11 +31,11 @@ def appStarted(app):
 
     # player car
     startFinishStraight = app.track.getSectors()[0]
-    xshift = (app.width/2) - (app.track.checqueredFlagX)
+    xshift = (app.width/2) - (app.track.checkeredFlagX)
     yshift = app.track.getSector(0).y1 - (app.height/2)
     (x1, y1, x2, y2) = startFinishStraight.getSectorCoords()
     maxspeed = 7
-    carX = app.track.checqueredFlagX + xshift
+    carX = app.track.checkeredFlagX + xshift
     carY = y1 - yshift
     app.playerCar = PlayerCar(carX, carY, maxspeed)
     app.playerCar.currentSector = app.track.sectorsList[0]
@@ -107,12 +107,12 @@ def createtrack3(app):
     sectors = []
     sector0 = Sector(0, 0, 2000, 2000, 2000)
     sector1 = Sector(1, 0, 0, 0, 2000)
-    sector2 = Sector(2, 0, 0, 750, 0)
-    sector3 = Sector(3, 750, 0, 750, 1500)
-    sector4 = Sector(4, 750, 1500, 1250, 1500)
-    sector5 = Sector(5, 1250, 750, 1250, 1500)
-    sector6 = Sector(6, 1250, 750, 2000, 750)
-    sector7 = Sector(7, 2000, 750, 2000, 2000) 
+    sector2 = Sector(2, 0, 0, 800, 0)
+    sector3 = Sector(3, 800, 0, 800, 1600)
+    sector4 = Sector(4, 800, 1600, 1200, 1600)
+    sector5 = Sector(5, 1200, 800, 1200, 1600)
+    sector6 = Sector(6, 1200, 800, 2000, 800)
+    sector7 = Sector(7, 2000, 800, 2000, 2000) 
     sectors.append(sector0)
     sectors.append(sector1)
     sectors.append(sector2)
@@ -226,7 +226,6 @@ def mousePressed(app, event):
               app.height*7/10 <= event.y <= app.height*8/10):
               app.currentScreen = "home"
 
-
 def checkTrackLimits(app, car, scrollX, scrollY):
     carX, carY = car.getCarCoords()
     app.playerCar.currentSector = app.track.getCurrentSector(carX, carY, scrollX, scrollY)
@@ -240,7 +239,7 @@ def drawCar(app, canvas):
 
 def drawtrack(app, canvas, track):
     trackWidth = track.getWidth()
-    xshift = (app.width/2) - (track.checqueredFlagX)
+    xshift = (app.width/2) - (track.checkeredFlagX)
     yshift = (track.getSector(0).y1) - (app.height/2)
     # draw each sector of the track
     for sector in track.getSectors()[::-1]:
@@ -248,13 +247,6 @@ def drawtrack(app, canvas, track):
         (x1, y1, x2, y2) = sector.getSectorCoords()
         canvas.create_rectangle(x1-trackWidth-app.scrollX+xshift, y1-trackWidth-app.scrollY-yshift,
                         x2+trackWidth-app.scrollX+xshift, y2+trackWidth-app.scrollY-yshift, fill='grey', outline='')
-
-    # draw checquered flag
-    (x1, y1, x2, y2) = track.getChecqueredFlag()
-    canvas.create_line(x1-app.scrollX+xshift, 
-                       y1-app.scrollY-yshift, 
-                       x2-app.scrollX+xshift, 
-                       y2-app.scrollY-yshift, fill='white', width='5')
 
 def drawStopwatch(app, canvas):
     minutes = app.timeElapsed // 60
@@ -364,29 +356,6 @@ def drawOptionsScreen(app, canvas):
     drawMiniMapView(app, canvas, app.trackslist[2], x2+(2*app.width/16)+(x2-x1), y1, x2+(2*app.width/16)+2*(x2-x1), y2)
 
 
-
-def drawTrackLines(app, canvas, track):
-    xshift = (app.width/2) - (track.checqueredFlagX)
-    yshift = (track.getSector(0).y1) - (app.height/2)
-
-    segmentlength = 40 # length of each dotted segment in dotted line
-    for sector in track.getSectors()[::-1]:
-        (x1, y1, x2, y2) = sector.getSectorCoords()
-        if sector.orientation == "horizontal":
-            for i in range(x1, x2, segmentlength*3):
-                canvas.create_line(i-app.scrollX+xshift,
-                                   y1-app.scrollY-yshift,
-                                   i+segmentlength-app.scrollX+xshift, 
-                                   y2-app.scrollY-yshift,
-                                   fill='white', width=5)
-        elif sector.orientation == "vertical":
-            for i in range(y1, y2, segmentlength*3):
-                canvas.create_line(x1-app.scrollX+xshift,
-                                   i-app.scrollY-yshift,
-                                   x2-app.scrollX+xshift, 
-                                   i+segmentlength-app.scrollY-yshift,
-                                   fill='white', width=5)
-
 def drawTrackLimits(app, canvas):
     for sector in app.track.sectorsList:
         if sector.orientation == "horizontal":
@@ -434,8 +403,9 @@ def drawTimingBoard(app, canvas):
                            anchor='w')
 
 def drawSpeedometer(app, canvas, car):
+    # draws speedometer represented as a progress bar
     currentVel = car.vel
-    realisticTopSpeed = 354 # km/h
+    realisticTopSpeed = 354 # km/h (hypothetical speed)
     realisticVel = currentVel*realisticTopSpeed/car.maxvel
     if realisticVel < 100:
         realisticVelStr = f"  {str(round(realisticVel, 1))}"
@@ -449,17 +419,126 @@ def drawSpeedometer(app, canvas, car):
                 text=f"{realisticVelStr} km/h", fill='maroon', 
                 font = 'Arial 24 bold', anchor='w')
 
+    # progress filler
     canvas.create_rectangle(app.width*9/15, 
                             app.height*23/25, 
                             app.width*9/15+(currentVel/car.maxvel*speedometerBarLength),
                             app.height*24/25,
                             fill='maroon', outline='')
 
+    # outline
     canvas.create_rectangle(app.width*9/15, 
                             app.height*23/25, 
                             app.width*9/15+speedometerBarLength,
                             app.height*24/25,
                             fill='', outline='black', width=2)
+
+def drawTrackLines(app, canvas, track):
+    xshift = (app.width/2) - (track.checkeredFlagX)
+    yshift = (track.getSector(0).y1) - (app.height/2)
+
+    segmentlength = 40 # length of each dotted segment in dotted line
+    for sector in track.getSectors()[::-1]:
+        (x1, y1, x2, y2) = sector.getSectorCoords()
+        if sector.orientation == "horizontal":
+            for i in range(x1, x2, segmentlength*3):
+                canvas.create_line(i-app.scrollX+xshift,
+                                   y1-app.scrollY-yshift,
+                                   i+segmentlength-app.scrollX+xshift, 
+                                   y2-app.scrollY-yshift,
+                                   fill='white', width=5)
+
+
+        elif sector.orientation == "vertical":
+            for i in range(y1, y2, segmentlength*3):
+                canvas.create_line(x1-app.scrollX+xshift,
+                                   i-app.scrollY-yshift,
+                                   x2-app.scrollX+xshift, 
+                                   i+segmentlength-app.scrollY-yshift,
+                                   fill='white', width=5)
+
+def drawCurbs(app, canvas, track):
+    xshift = (app.width/2) - (track.checkeredFlagX)
+    yshift = (track.getSector(0).y1) - (app.height/2)
+    segmentlength = 40
+    for sector in track.getSectors():
+        x1, y1, x2, y2 = sector.getSectorCoords()
+        if sector.orientation == "horizontal":
+            for i in range(x1-track.width, x2+track.width, segmentlength*2):
+                canvas.create_line(i-app.scrollX+xshift,
+                                   y1-app.scrollY-yshift-track.width,
+                                   i+segmentlength-app.scrollX+xshift, 
+                                   y2-app.scrollY-yshift-track.width,
+                                   fill='maroon', width=40)
+                canvas.create_line(i-app.scrollX+xshift,
+                                   y1-app.scrollY-yshift+track.width,
+                                   i+segmentlength-app.scrollX+xshift, 
+                                   y2-app.scrollY-yshift+track.width,
+                                   fill='maroon', width=40)
+            for i in range(x1-track.width, x2+track.width-segmentlength, segmentlength*2):
+                canvas.create_line(i-app.scrollX+xshift+segmentlength,
+                                   y1-app.scrollY-yshift-track.width,
+                                   i+(2*segmentlength)-app.scrollX+xshift, 
+                                   y2-app.scrollY-yshift-track.width,
+                                   fill='white', width=40)
+                canvas.create_line(i-app.scrollX+xshift+segmentlength,
+                                   y1-app.scrollY-yshift+track.width,
+                                   i+(2*segmentlength)-app.scrollX+xshift, 
+                                   y2-app.scrollY-yshift+track.width,
+                                   fill='white', width=40)
+        elif sector.orientation == "vertical":
+            for i in range(y1-track.width, y2+track.width, segmentlength*2):
+                canvas.create_line(x1-app.scrollX+xshift-track.width,
+                                   i-app.scrollY-yshift,
+                                   x2-app.scrollX+xshift-track.width, 
+                                   i+segmentlength-app.scrollY-yshift,
+                                   fill='maroon', width=40)
+                canvas.create_line(x1-app.scrollX+xshift+track.width,
+                                   i-app.scrollY-yshift,
+                                   x2-app.scrollX+xshift+ track.width, 
+                                   i+segmentlength-app.scrollY-yshift,
+                                   fill='maroon', width=40)
+            for i in range(y1-track.width, y2+track.width-segmentlength, segmentlength*2):
+                canvas.create_line(x1-app.scrollX+xshift-track.width,
+                                   i-app.scrollY-yshift+segmentlength,
+                                   x2-app.scrollX+xshift-track.width, 
+                                   i+(2*segmentlength)-app.scrollY-yshift,
+                                   fill='white', width=40)
+                canvas.create_line(x1-app.scrollX+xshift+track.width,
+                                   i-app.scrollY-yshift+segmentlength,
+                                   x2-app.scrollX+xshift+track.width, 
+                                   i+(2*segmentlength)-app.scrollY-yshift,
+                                   fill='white', width=40)
+
+def drawFinishLine(app, canvas, track):
+    xshift = (app.width/2) - (track.checkeredFlagX)
+    yshift = (track.getSector(0).y1) - (app.height/2)
+    # draw checkered flag
+    (x1, y1, x2, y2) = track.getCheckeredFlag()
+    segmentlength = 10
+    for i in range(y1, y2, segmentlength*2):
+                canvas.create_line(x1-app.scrollX+xshift,
+                                   i-app.scrollY-yshift,
+                                   x2-app.scrollX+xshift, 
+                                   i+segmentlength-app.scrollY-yshift,
+                                   fill='black', width=segmentlength)
+                canvas.create_line(x1-app.scrollX+xshift,
+                                   i-app.scrollY-yshift+segmentlength,
+                                   x2-app.scrollX+xshift, 
+                                   i+(2*segmentlength)-app.scrollY-yshift,
+                                   fill='white', width=segmentlength)
+
+                canvas.create_line(x1-app.scrollX+xshift-segmentlength,
+                                   i-app.scrollY-yshift,
+                                   x2-app.scrollX+xshift-segmentlength, 
+                                   i+segmentlength-app.scrollY-yshift,
+                                   fill='white', width=segmentlength)
+                canvas.create_line(x1-app.scrollX+xshift-segmentlength,
+                                   i-app.scrollY-yshift+segmentlength,
+                                   x2-app.scrollX+xshift-segmentlength, 
+                                   i+(2*segmentlength)-app.scrollY-yshift,
+                                   fill='black', width=segmentlength)
+
 
     
 def redrawAll(app, canvas):
@@ -469,8 +548,10 @@ def redrawAll(app, canvas):
         drawOptionsScreen(app, canvas)
     elif app.currentScreen == "game": # start the game
         drawGrass(app, canvas)
+        drawCurbs(app, canvas, app.track)
         drawtrack(app, canvas, app.track)
         drawTrackLines(app, canvas, app.track)
+        drawFinishLine(app, canvas, app.track)
         drawStopwatch(app, canvas)
         drawTimingBoard(app, canvas)
         drawLapCounter(app, canvas)
