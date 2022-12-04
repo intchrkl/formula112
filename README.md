@@ -1,3 +1,3 @@
 # formula112tp
 
-Test
+My Term Project for 15-112, Fundamentals of Programming and Computer Science Carnegie Mellon University.
