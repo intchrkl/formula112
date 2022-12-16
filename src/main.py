@@ -245,7 +245,7 @@ def drawtrack(app, canvas, track):
     for sector in track.getSectors()[::-1]:
         
         (x1, y1, x2, y2) = sector.getSectorCoords()
-        canvas.create_rectangle(x1-trackWidth-app.scrollX+xshift, y1-trackWidth-app.scrollY-yshift,
+        canvas.create_rectangle( x1-trackWidth-app.scrollX+xshift, y1-trackWidth-app.scrollY-yshift,
                         x2+trackWidth-app.scrollX+xshift, y2+trackWidth-app.scrollY-yshift, fill='grey', outline='')
 
 def drawStopwatch(app, canvas):
@@ -337,39 +337,28 @@ def drawMiniMapView(app, canvas, track, x1, y1, x2, y2):
                        fill='maroon',
                        font='Arial 20 bold')
 
-def drawOptionsScreen(app, canvas):
+def drawOptionsButtons(app, canvas):
     canvas.create_text(app.width/2, app.height/8, text='Choose your track!',
                        fill='maroon', font='Arial 34 bold')
     canvas.create_text(app.width/2, app.height*7/8,
                         text=f'Currently selected: {app.track}',
                         fill='maroon', font='Arial 34 bold')
-    x1, y1, x2, y2 = app.width/16, app.height*3/8, app.width*5/16, app.height*5/8
+    
 
     canvas.create_rectangle(app.width*6/14, app.height*7/10, app.width*8/14, app.height*8/10,
                             fill='dark grey', outline='black', width=5)
     canvas.create_text(app.width*7/14, app.height*7.5/10,
                             text='Save', fill='black', font='Arial 20 bold')
 
+
+def drawMiniMapViewWrapper(app, canvas):
+    # coordinates of the first minimap frame
+    x1, y1, x2, y2 = app.width/16, app.height*3/8, app.width*5/16, app.height*5/8
+
     # draws each of the tracks in a small frame for the user to view
     drawMiniMapView(app, canvas, app.trackslist[0], x1, y1, x2, y2)
     drawMiniMapView(app, canvas, app.trackslist[1], x2+app.width/16, y1, x2+app.width/16+(x2-x1), y2)
     drawMiniMapView(app, canvas, app.trackslist[2], x2+(2*app.width/16)+(x2-x1), y1, x2+(2*app.width/16)+2*(x2-x1), y2)
-
-
-def drawTrackLimits(app, canvas):
-    for sector in app.track.sectorsList:
-        if sector.orientation == "horizontal":
-            canvas.create_rectangle(sector.x1-app.track.width-app.scrollX+app.track.xshift,
-                                    sector.y1-app.track.width-app.scrollY-app.track.yshift,
-                                    sector.x2+app.track.width-app.scrollX+app.track.xshift,
-                                    sector.y1+app.track.width-app.scrollY-app.track.yshift,
-                                    outline='red', width=2)
-        elif sector.orientation == "vertical":
-            canvas.create_rectangle(sector.x1-app.track.width-app.scrollX+app.track.xshift,
-                                    sector.y1-app.track.width-app.scrollY-app.track.yshift,
-                                    sector.x1+app.track.width-app.scrollX+app.track.xshift,
-                                    sector.y2-app.track.width-app.scrollY-app.track.yshift,
-                                    outline='blue', width=2)
                                     
 def drawTimingBoard(app, canvas):
 
@@ -437,7 +426,7 @@ def drawTrackLines(app, canvas, track):
     xshift = (app.width/2) - (track.checkeredFlagX)
     yshift = (track.getSector(0).y1) - (app.height/2)
 
-    segmentlength = 40 # length of each dotted segment in dotted line
+    segmentlength = int(track.width*4/10) # length of each dotted segment in dotted line
     for sector in track.getSectors()[::-1]:
         (x1, y1, x2, y2) = sector.getSectorCoords()
         if sector.orientation == "horizontal":
@@ -460,7 +449,7 @@ def drawTrackLines(app, canvas, track):
 def drawCurbs(app, canvas, track):
     xshift = (app.width/2) - (track.checkeredFlagX)
     yshift = (track.getSector(0).y1) - (app.height/2)
-    segmentlength = 40
+    segmentlength = int(track.width*4/10)
     for sector in track.getSectors():
         x1, y1, x2, y2 = sector.getSectorCoords()
         if sector.orientation == "horizontal":
@@ -515,7 +504,7 @@ def drawFinishLine(app, canvas, track):
     yshift = (track.getSector(0).y1) - (app.height/2)
     # draw checkered flag
     (x1, y1, x2, y2) = track.getCheckeredFlag()
-    segmentlength = 10
+    segmentlength = int(track.width*2/10)
     for i in range(y1, y2, segmentlength*2):
                 canvas.create_line(x1-app.scrollX+xshift,
                                    i-app.scrollY-yshift,
@@ -545,7 +534,8 @@ def redrawAll(app, canvas):
     if app.currentScreen == "home": # home screen
         drawMenuScreen(app, canvas)
     elif app.currentScreen == "options": # menu/options
-        drawOptionsScreen(app, canvas)
+        drawOptionsButtons(app, canvas)
+        drawMiniMapViewWrapper(app, canvas)
     elif app.currentScreen == "game": # start the game
         drawGrass(app, canvas)
         drawCurbs(app, canvas, app.track)
@@ -559,8 +549,6 @@ def redrawAll(app, canvas):
         drawCurrentSectorText(app, canvas)
         drawSpeedometer(app, canvas, app.playerCar)
         
-        
-        # drawTrackLimits(app, canvas) # temporary
  
 def playFormula112():
     appwidth = 1400
