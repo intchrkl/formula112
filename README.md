@@ -4,8 +4,11 @@ My Term Project for 15-112, Fundamentals of Programming and Computer Science at 
 
 Video demo of project: https://youtu.be/f_NQbCnreb4
 
+## Installation:
+
 ## How It's Made:
 
 Tech used: Python, CMU 112 Graphics, OOP
 
-## Lessons Learned
+## Lessons Learned:
+
